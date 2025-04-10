@@ -4,6 +4,8 @@ class Lightsensor {
     void setup() {}
         // Initialize the I2C bus (BH1750 library doesn't do this automatically)
 };
+
+int a;
 /*
 
 
