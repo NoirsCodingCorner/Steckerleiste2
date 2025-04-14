@@ -1,16 +1,38 @@
+#include <BH1750.h>
+
 
 class Lightsensor {
+
+  private:
+  BH1750 sensor;
+
     public:
+    Lightsensor(uint8_t address = 0x23) : sensor(address) {}
+
+    bool begin() {
+      Wire.begin();
+      return sensor.begin(BH1750::CONTINUOUS_HIGH_RES_MODE);
+    }
+
+    bool isReady() {
+      return sensor.measurementReady();
+    }
+
+    float read() {
+      return sensor.readLightLevel();
+    }
+    
+
+    
+      
     void setup() {}
         // Initialize the I2C bus (BH1750 library doesn't do this automatically)
 };
 
-int a;
-/*
 
 
-#include <BH1750.h>
-#include <Wire.h>
+
+
 
 /*
   BH1750 can be physically configured to use two I2C addresses:
@@ -19,8 +41,8 @@ int a;
 
   Library uses 0x23 address as default, but you can define any other address.
   If you had troubles with default value - try to change it to 0x5C.
-
-# define LIGHTSENSOR_ADDRESS 0x23
+*/
+/* # define LIGHTSENSOR_ADDRESS 0x23
 BH1750 lightMeter(LIGHTSENSOR_ADDRESS);
 
 void setup() {
@@ -30,7 +52,7 @@ void setup() {
   // Initialize the I2C bus (BH1750 library doesn't do this automatically)
   Wire.begin();
   // On esp8266 you can select SCL and SDA pins using Wire.begin(D4, D3);
-
+ */
   /*
 
     BH1750 has six different measurement modes. They are divided in two groups;
@@ -60,8 +82,8 @@ void setup() {
       BH1750_ONE_TIME_LOW_RES_MODE
       BH1750_ONE_TIME_HIGH_RES_MODE
       BH1750_ONE_TIME_HIGH_RES_MODE_2
-
-
+*/
+/* 
   // begin returns a boolean that can be used to detect setup problems.
   if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {
     Serial.println(F("BH1750 Advanced begin"));
@@ -78,4 +100,4 @@ void loop() {
     Serial.println(" lx");
   }
 
-}*/
+} */
