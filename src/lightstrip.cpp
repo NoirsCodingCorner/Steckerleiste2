@@ -1,60 +1,56 @@
-#include <Adafruit_NeoPixel.h>
-#include <vector>
+#include "LightStrip.h"
 
-#define PIN_NEO_PIXEL 16  // The ESP32 pin GPIO16 connected to NeoPixel
-#define NUM_PIXELS 60     // Number of LEDs on the strip
-#define WAVE_LENGTH 5     // Number of LEDs in the wave
-#define DELAY_TIME 50     // Delay between steps
+// Constructor implementation, using initializer list to setup the NeoPixel object and ledValues vector
+LightStrip::LightStrip(int numPixels, int pin)
+    : strip(numPixels, pin, NEO_GRB + NEO_KHZ800), ledValues(numPixels, 0)
+{
+}
 
-class LightStrip {
-public:
-  LightStrip(int numPixels, int pin)
-    : strip(numPixels, pin, NEO_GRB + NEO_KHZ800), ledValues(numPixels, 0) {}
-
-  void begin() {
+// Initialize the NeoPixel strip
+void LightStrip::begin() {
     strip.begin();
     strip.clear();
     strip.show();
-  }
+}
 
-  void clear() {
+// Clear all LED values and update the strip to turn off all LEDs
+void LightStrip::clear() {
     for (int i = 0; i < ledValues.size(); i++) {
-      ledValues[i] = 0;
-      strip.setPixelColor(i, strip.Color(0, 0, 0));
+        ledValues[i] = 0;
+        strip.setPixelColor(i, strip.Color(0, 0, 0));
     }
     strip.show();
-  }
+}
 
-  void setLedValue(int index, uint8_t value) {
+// Set the brightness of a specific LED (red channel) and update the strip
+void LightStrip::setLedValue(int index, uint8_t value) {
     if (index >= 0 && index < ledValues.size()) {
-      ledValues[index] = value;
-      strip.setPixelColor(index, strip.Color(value, 0, 0)); // Red brightness
+        ledValues[index] = value;
+        strip.setPixelColor(index, strip.Color((double)(value)*warmth, (double)(value)*(1-warmth), 0));  // Only adjust the red brightness
+        Serial.println("LED set to " + String(value)+ " at index " + String(index)+ "in rbg: red:" + String((double)(value)*warmth) + " green:" + String((double)(value)*(1-warmth)));
     }
     show();
-  }
+}
 
-  void show() {
+// Update the physical LED strip display
+void LightStrip::show() {
     strip.show();
-  }
+}
 
-  void updateWave(int waveHeadIndex) {
+// Create a moving wave effect by updating a range of LEDs' brightness
+void LightStrip::updateWave(int waveHeadIndex) {
     clear();
     for (int j = 0; j < WAVE_LENGTH; j++) {
-      int pos = waveHeadIndex - j;
-      if (pos >= 0 && pos < ledValues.size()) {
-        int brightness = 255 - (j * (255 / WAVE_LENGTH));
-        setLedValue(pos, brightness);
-      }
+        int pos = waveHeadIndex - j;
+        if (pos >= 0 && pos < ledValues.size()) {
+            int brightness = 255 - (j * (255 / WAVE_LENGTH));
+            setLedValue(pos, brightness);
+        }
     }
     show();
-  }
+}
 
-private:
-  Adafruit_NeoPixel strip;
-  std::vector<uint8_t> ledValues;
-};
-
-// Create global instance
+// Global instance definition
 LightStrip lightStrip(NUM_PIXELS, PIN_NEO_PIXEL);
 
 /*
