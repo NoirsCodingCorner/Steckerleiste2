@@ -15,11 +15,7 @@ void LightStrip::begin() {
 
 // Clear all LED values and update the strip to turn off all LEDs
 void LightStrip::clear() {
-    for (int i = 0; i < ledValues.size(); i++) {
-        ledValues[i] = 0;
-        strip.setPixelColor(i, strip.Color(0, 0, 0));
-    }
-    strip.show();
+    strip.clear();
 }
 
 // Set the brightness of a specific LED (red channel) and update the strip
@@ -27,7 +23,7 @@ void LightStrip::setLedValue(int index, uint8_t value) {
     if (index >= 0 && index < ledValues.size()) {
         ledValues[index] = value;
         strip.setPixelColor(index, strip.Color((double)(value)*warmth, (double)(value)*(1-warmth), 0));  // Only adjust the red brightness
-        Serial.println("LED set to " + String(value)+ " at index " + String(index)+ "in rbg: red:" + String((double)(value)*warmth) + " green:" + String((double)(value)*(1-warmth)));
+        //Serial.println("LED set to " + String(value)+ " at index " + String(index)+ "in rbg: red:" + String((double)(value)*warmth) + " green:" + String((double)(value)*(1-warmth)));
     }
     show();
 }
@@ -55,13 +51,30 @@ LightStrip lightStrip(NUM_PIXELS, PIN_NEO_PIXEL);
 
 /*
 void setup() {
-  lightStrip.begin();
+    Serial.begin(115200);
+    lightStrip.begin();
 }
 
 void loop() {
-  for (int i = 0; i < NUM_PIXELS + WAVE_LENGTH; i++) {
-    lightStrip.updateWave(i);
-    delay(DELAY_TIME);
-  }
+ for (int j = 0; j < 57; j++)
+ {
+    lightStrip.clear();
+    for (int i = 0; i < 100; i++)
+    {
+        lightStrip.warmth=i/100.0;
+        lightStrip.setLedValue(j,255/4);
+        lightStrip.setLedValue(j+1,255/2);
+        lightStrip.setLedValue(j+2,255/4);
+        delay(DELAY_TIME);
+    }
+    for (int i = 100; i >= 0; i--)
+    {
+        lightStrip.warmth=i/100.0;
+        lightStrip.setLedValue(j,255/4);
+        lightStrip.setLedValue(j+1,255/2);
+        lightStrip.setLedValue(j+2,255/4);
+        delay(DELAY_TIME);
+    }
+ } 
 }
 */

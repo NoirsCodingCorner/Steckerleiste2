@@ -9,7 +9,7 @@
 #define PIN_NEO_PIXEL 16  // The ESP32 pin GPIO16 connected to NeoPixel
 #define NUM_PIXELS 60     // Number of LEDs on the strip
 #define WAVE_LENGTH 5     // Number of LEDs in the wave
-#define DELAY_TIME 50     // Delay between steps
+#define DELAY_TIME 10     // Delay between steps
 
 class LightStrip {
 public:
