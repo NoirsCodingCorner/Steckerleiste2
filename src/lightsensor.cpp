@@ -1,12 +1,15 @@
 #include <BH1750.h>
-
+#include <Wire.h>
 
 class Lightsensor {
+  
 
-  private:
-  BH1750 sensor;
+  public:
+    BH1750 sensor;
+    float cutoff = 10.0; // Default cutoff in lux (you can adjust)
+    int analogPin = 4;
 
-    public:
+
     Lightsensor(uint8_t address = 0x23) : sensor(address) {}
 
     bool begin() {
@@ -18,16 +21,29 @@ class Lightsensor {
       return sensor.measurementReady();
     }
 
-    float read() {
+    float measure() {
+      cutoff = analogRead(analogPin) / 8;
       return sensor.readLightLevel();
     }
-    
 
-    
-      
-    void setup() {}
-        // Initialize the I2C bus (BH1750 library doesn't do this automatically)
+    void setCutoff(double newCutoff) {
+      cutoff = newCutoff;
+    }
+
+    bool isBright() {
+      float lux = measure();
+      return lux >= cutoff;
+    }
+
+    float readAnalog() {
+      if (analogPin >= 0) {
+        return analogRead(analogPin);
+      } else {
+        return -1; // Fehler: Kein Pin gesetzt
+      }
+    }
 };
+
 
 
 
