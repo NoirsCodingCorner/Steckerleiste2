@@ -1,17 +1,26 @@
-#include "movementsensor.h"
+#include "movementsensor.hpp"
+#include <Wire.h>
 
 void MovementSensor::begin() {
-    // In this case we use the internal pull-up for the pot pin
-    pinMode(potPin, INPUT_PULLUP);
+    // Initialize I²C and configure the sensor pin as input
+    Wire.begin();
+    pinMode(MOVEMENT_SENSOR_PIN, INPUT);
 }
 
-double MovementSensor::measure() {
-    // Returns an analog value from the specified potentiometer pin
-    return analogRead(potPin);
-}
-
-// Optional: add a basic active check if needed
-bool MovementSensor::active() {
-    // For example, return true if the sensor is initialized correctly.
-    return true;
+int8_t MovementSensor::measureMovement() {
+    if (MEASUREMENT_TIMEOUT_MS > DETECTION_HOLD_TIME_MS){
+        return -1; // the timeout is to fast! Timeout should not be faster than 
+    }
+    // Poll the sensor pin once 
+        if (digitalRead(MOVEMENT_SENSOR_PIN) == HIGH) {
+            if(DETECTION_HOLD_TIME_MS > (millis()-startTime)){
+                return +2;  //same Movement detected
+            }
+            else {
+                startTime = millis();
+                return +1;  //new Movement detected
+            }
+        }
+    // No movement detected
+    return 0;
 }
