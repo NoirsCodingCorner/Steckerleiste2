@@ -6,7 +6,7 @@ class Lightsensor {
 
   public:
     BH1750 sensor;
-    float cutoff = 10.0; // Default cutoff in lux (you can adjust)
+    float cutoff = 0.0; // Default cutoff in lux (you can adjust)
     int analogPin = 4;
 
 
@@ -22,12 +22,13 @@ class Lightsensor {
     }
 
     float measure() {
-      int analogValue = analogRead(analogPin);
+/*       int analogValue = analogRead(analogPin);
 
       // Check whether a potentiometer is connected (e.g. not permanently 0 or 1023)
       if (analogValue > 10 && analogValue < 1020) {
         cutoff = analogValue / 10.0;
-      }
+      } */
+    
 
       return sensor.readLightLevel();
     }
