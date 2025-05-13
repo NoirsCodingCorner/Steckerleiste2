@@ -46,8 +46,33 @@ void LightStrip::updateWave(int waveHeadIndex) {
     show();
 }
 
-// Global instance definition
-LightStrip lightStrip(NUM_PIXELS, PIN_NEO_PIXEL);
+// In LightStrip.cpp:
+
+void LightStrip::direction_wave(int wavedirection, double birghtness=0, int delaytime=100) {
+    size_t n = ledValues.size();
+
+    if (wavedirection > 0) {
+        // forward: single LED moves from 0 to n-1
+        for (size_t i = 0; i < n; ++i) {
+            clear();                    // turn off all LEDs
+            setLedValue(i, birghtness);        // turn on just this one
+            delay(delaytime);                // hold for 1 second
+        }
+    }
+    else if (wavedirection < 0) {
+        // backward: single LED moves from n-1 down to 0
+        for (int i = int(n) - 1; i >= 0; --i) {
+            clear();
+            setLedValue(i, birghtness);
+            delay(delaytime);
+        }
+    }
+    else {
+        // no movement: just clear
+        clear();
+        show();
+    }
+}
 
 /*
 void setup() {

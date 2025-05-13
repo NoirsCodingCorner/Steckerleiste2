@@ -1,32 +1,35 @@
 #include "MovementSensor.hpp"
-MovementSensor sensor = MovementSensor();
+#include <Wire.h>
 
-// This function will be called when a master requests data.
+MovementSensor sensor;
+
+// Diese Funktion wird aufgerufen, wenn der Master Daten vom Slave anfordert
 void onRequest() {
-    // Get the current measurement from the sensor.
-    // Note: On many Arduino platforms, double is the same as float (4 bytes).
+    // Bewegung messen
     double measurement = sensor.measureMovement();
-    // Send the measurement as binary data.
-    // Make sure that the master interprets the byte order and size as expected.
+    
+    // Messwert als Binärdaten senden
     Wire.write((byte*) &measurement, sizeof(measurement));
 }
 
 void setup() {
     Serial.begin(115200);
-    //Default I2C address of the movement sensor.
-    static constexpr uint8_t I2C_ADDRESS = 0x5C;
+
+    // Standard-I2C-Adresse des Bewegungssensors
+    constexpr uint8_t I2C_ADDRESS = 0x5C;
 
     sensor.begin();
 
-    // Initialize I²C as a slave device with the sensor's address.
+    // I2C als Slave initialisieren
     Wire.begin(I2C_ADDRESS);
-    // Register the callback function that sends sensor data when requested.
+
+    // Callback registrieren für Datenanforderungen vom Master
     Wire.onRequest(onRequest);
 }
 
 void loop() {
-    // Optionally print measurement to the Serial Monitor for debugging.
+    // Optional: Messwert im Seriellen Monitor ausgeben
     double measurement = sensor.measure();
-    //Serial.println("Measurement: " + String(measurement));
+    // Serial.println("Measurement: " + String(measurement));
     delay(500);
 }
