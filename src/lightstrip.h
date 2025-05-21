@@ -37,6 +37,9 @@ public:
 
 
     void direction_wave(int wavedirection, double birghtness, int delaytime);
+    
+    void setAllFromAnalog(int analogPin);
+
 
 private:
     Adafruit_NeoPixel strip;

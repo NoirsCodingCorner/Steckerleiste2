@@ -4,6 +4,7 @@
 #include <vector>
 #include "attiny_communication.h"
 #include "lightstrip.h"
+#include "lightsensor.h"  // <--- NEU
 
 class MainFlow {
 public:
@@ -12,27 +13,15 @@ public:
     int segs_per_sensor = 3;
     AttinyCommunication comm;
     LightStrip lightStrip;
+    Lightsensor lightSensor;  // <--- NEU
 
     MainFlow()
-        : comm(), lightStrip(NUM_PIXELS, PIN_NEO_PIXEL) {}
+        : comm(), lightStrip(NUM_PIXELS, PIN_NEO_PIXEL), lightSensor(0x23) {}
 
     void init();
-
-    /**
-     * @brief Determine movement direction based on current_values vs last_values.
-     * 
-     * Scans for the first active sensor in each vector:
-     * - If either vector has no `true` entries, returns 0.
-     * - If the active index has increased since last_values, returns +1.
-     * - If it has decreased, returns -1.
-     * - If it's the same, returns 0.
-     */
     int direction() const;
-
     void measure();
-
     void sendWave();
-
     void run();
 };
 

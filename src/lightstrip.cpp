@@ -54,6 +54,18 @@ void LightStrip::updateWave(int waveHeadIndex) {
     show();
 }
 
+void LightStrip::setAllFromAnalog(int analogPin) {
+    int analogValue = analogRead(analogPin);
+    Serial.println("Analog Value: " + String(analogValue));
+
+    // Annahme: ESP32 mit 12-bit ADC → Wertebereich 0–4095 bei 0–3.3V oder 0–4.0V
+    // Wenn du Arduino nutzt, verwende 1023 statt 4095
+    int brightness = map(analogValue, 0, 4095, 0, 255);
+    brightness = constrain(brightness, 0, 255);  // Sicherheitshalber begrenzen
+
+    setAll(static_cast<uint8_t>(brightness));
+}
+
 // In LightStrip.cpp:
 
 void LightStrip::direction_wave(int wavedirection, double birghtness=0, int delaytime=100) {

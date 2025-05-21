@@ -1,53 +1,40 @@
-#include <BH1750.h>
-#include <Wire.h>
+#include "lightsensor.h"
 
-class Lightsensor {
-  
+Lightsensor::Lightsensor(uint8_t address)
+    : sensor(address) {}
 
-  public:
-    BH1750 sensor;
-    float cutoff = 0.0; // Default cutoff in lux (you can adjust)
-    int analogPin = 4;
+bool Lightsensor::begin() {
+    Wire.begin();
+    return sensor.begin(BH1750::CONTINUOUS_HIGH_RES_MODE);
+}
 
+bool Lightsensor::isReady() {
+    return sensor.measurementReady();
+}
 
-    Lightsensor(uint8_t address = 0x23) : sensor(address) {}
-
-    bool begin() {
-      Wire.begin();
-      return sensor.begin(BH1750::CONTINUOUS_HIGH_RES_MODE);
-    }
-
-    bool isReady() {
-      return sensor.measurementReady();
-    }
-
-    float measure() {
-/*       int analogValue = analogRead(analogPin);
-
-      // Check whether a potentiometer is connected (e.g. not permanently 0 or 1023)
-      if (analogValue > 10 && analogValue < 1020) {
+float Lightsensor::measure() {
+    /*
+    int analogValue = analogRead(analogPin);
+    if (analogValue > 10 && analogValue < 1020) {
         cutoff = analogValue / 10.0;
-      } */
-    
-
-      return sensor.readLightLevel();
     }
+    */
+    return sensor.readLightLevel();
+}
 
+void Lightsensor::setCutoff(double newCutoff) {
+    cutoff = newCutoff;
+}
 
-    void setCutoff(double newCutoff) {
-      cutoff = newCutoff;
-    }
+bool Lightsensor::isBright() {
+    float lux = measure();
+    return lux >= cutoff;
+}
 
-    bool isBright() {
-      float lux = measure();
-      return lux >= cutoff;
-    }
-
-    float readAnalog() {
-      if (analogPin >= 0) {
+float Lightsensor::readAnalog() {
+    if (analogPin >= 0) {
         return analogRead(analogPin);
-      } else {
-        return -1; // Error: No Pin is set
-      }
+    } else {
+        return -1; // No valid pin
     }
-};
+}

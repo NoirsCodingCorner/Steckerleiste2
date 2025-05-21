@@ -6,10 +6,12 @@ void MainFlow::init() {
     lightStrip.warmth = 1.0;
     lightStrip.clear();
     lightStrip.show();
+
+    lightSensor.setCutoff(20.0);  // Beispielwert in Lux
+    lightSensor.begin();
 }
 
 int MainFlow::direction() const {
-    // Finde erstes aktives Element in last_values
     int last_idx = -1;
     for (size_t i = 0; i < last_values.size(); ++i) {
         if (last_values[i]) {
@@ -18,7 +20,6 @@ int MainFlow::direction() const {
         }
     }
 
-    // Finde erstes aktives Element in current_values
     int curr_idx = -1;
     for (size_t i = 0; i < current_values.size(); ++i) {
         if (current_values[i]) {
@@ -27,7 +28,6 @@ int MainFlow::direction() const {
         }
     }
 
-    // Keine Bewegung oder gleiche Position
     if (last_idx < 0 || curr_idx < 0 || last_idx == curr_idx) {
         return 0;
     }
@@ -50,14 +50,20 @@ void MainFlow::sendWave() {
 void MainFlow::run() {
     measure();
 
-    // Wenn mindestens ein Sensor Bewegung erkennt
-    if (std::any_of(current_values.begin(), current_values.end(), [](bool val) { return val; })) {
-        lightStrip.setAll(100);  // Strip vollständig hell setzen
-        Serial.println("Hell.");
+    bool motion = std::any_of(current_values.begin(), current_values.end(), [](bool val) { return val; });
+    bool dark = !lightSensor.isBright();  // Umgebungslicht ist unterhalb der cutoff-Schwelle
+
+    Serial.print("Bewegung: ");
+    Serial.print(motion);
+    Serial.print(" | Dunkelheit: ");
+    Serial.println(dark);
+
+    if (motion && dark) {
+        // Helligkeit aus analogem Eingang (z. B. Poti) berechnen
+        lightStrip.setAllFromAnalog(25);  // <-- Hier den richtigen analogen Pin setzen
     } else {
-        lightStrip.clear();      // Strip ausschalten, wenn keine Bewegung
+        lightStrip.clear();
         lightStrip.show();
-        Serial.println("Dunkel.");
     }
 }
 
