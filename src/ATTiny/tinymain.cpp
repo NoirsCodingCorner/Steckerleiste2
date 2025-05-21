@@ -1,4 +1,4 @@
-#include "MovementSensor.hpp"
+/*#include "MovementSensor.hpp"
 #include <Wire.h>
 
 MovementSensor sensor;
@@ -33,3 +33,4 @@ void loop() {
     // Serial.println("Measurement: " + String(measurement));
     delay(500);
 }
+*/

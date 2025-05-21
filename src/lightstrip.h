@@ -32,6 +32,10 @@ public:
     // Create a moving wave effect along the strip
     void updateWave(int waveHeadIndex);
 
+    // Set all LEDs to full brightness
+    void setAll(uint8_t brightness);
+
+
     void direction_wave(int wavedirection, double birghtness, int delaytime);
 
 private:

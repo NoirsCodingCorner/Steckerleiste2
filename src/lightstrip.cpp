@@ -33,6 +33,14 @@ void LightStrip::show() {
     strip.show();
 }
 
+void LightStrip::setAll(uint8_t brightness) {
+    for (int i = 0; i < strip.numPixels(); ++i) {
+        ledValues[i] = brightness;
+        strip.setPixelColor(i, strip.Color((double)(brightness) * warmth, (double)(brightness) * (1 - warmth), 0));
+    }
+    show();
+}
+
 // Create a moving wave effect by updating a range of LEDs' brightness
 void LightStrip::updateWave(int waveHeadIndex) {
     clear();
