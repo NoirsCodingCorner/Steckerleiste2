@@ -47,11 +47,17 @@ void MainFlow::sendWave() {
     lightStrip.direction_wave(dir, segs_per_sensor * static_cast<int>(current_values.size()), 50);
 }
 
+static constexpr int FADE_STEP_DELAY = 10;  // ms per brightness step
+
 void MainFlow::run() {
     measure();
 
-    bool motion = std::any_of(current_values.begin(), current_values.end(), [](bool val) { return val; });
-    bool dark = !lightSensor.isBright();  // Umgebungslicht ist unterhalb der cutoff-Schwelle
+    bool motion = std::any_of(
+        current_values.begin(),
+        current_values.end(),
+        [](bool v){ return v; }
+    );
+    bool dark = !lightSensor.isBright();
 
     Serial.print("Bewegung: ");
     Serial.print(motion);
@@ -59,11 +65,17 @@ void MainFlow::run() {
     Serial.println(dark);
 
     if (motion && dark) {
-        // Helligkeit aus analogem Eingang (z. B. Poti) berechnen
-        lightStrip.setAllFromAnalog(25);  // <-- Hier den richtigen analogen Pin setzen
-    } else {
-        lightStrip.clear();
-        lightStrip.show();
+        // --- 1) Read & map analog pot on pin 25 ---
+        int raw = analogRead(25);                             // 0–4095 on ESP32
+        int mapped = map(raw, 0, 4095, 0, 255);              
+        uint8_t target = constrain(mapped, 0, 255);           // clamp just in case
+
+        // --- 2) Fade up to that brightness ---
+        lightStrip.fadeTo(target, FADE_STEP_DELAY);
+    }
+    else {
+        // --- 3) Fade back down to zero ---
+        lightStrip.fadeOut(FADE_STEP_DELAY);
     }
 }
 

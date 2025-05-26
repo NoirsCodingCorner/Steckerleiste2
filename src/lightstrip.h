@@ -40,6 +40,12 @@ public:
     
     void setAllFromAnalog(int analogPin);
 
+    // Slowly fade all LEDs from their current brightness to targetBrightness
+    void fadeTo(uint8_t targetBrightness, int stepDelay);
+
+    // Slowly fade all LEDs out to off
+    void fadeOut(int stepDelay);
+
 
 private:
     Adafruit_NeoPixel strip;

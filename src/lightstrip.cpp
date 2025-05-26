@@ -65,6 +65,30 @@ void LightStrip::setAllFromAnalog(int analogPin) {
 
     setAll(static_cast<uint8_t>(brightness));
 }
+void LightStrip::fadeTo(uint8_t targetBrightness, int stepDelay) {
+    // assume all leds have the same value as ledValues[0]
+    uint8_t current = ledValues.empty() ? 0 : ledValues[0];
+
+    if (current < targetBrightness) {
+        // fade up
+        for (uint8_t b = current; b <= targetBrightness; ++b) {
+            setAll(b);
+            delay(stepDelay);
+        }
+    } else if (current > targetBrightness) {
+        // fade down
+        for (int b = current; b >= targetBrightness; --b) {
+            setAll((uint8_t)b);
+            delay(stepDelay);
+        }
+    }
+    // if equal, do nothing
+}
+
+// Fade out to zero brightness
+void LightStrip::fadeOut(int stepDelay) {
+    fadeTo(0, stepDelay);
+}
 
 // In LightStrip.cpp:
 
