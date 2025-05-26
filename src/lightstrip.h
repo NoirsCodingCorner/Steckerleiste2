@@ -7,7 +7,7 @@
 
 // Macro definitions
 #define PIN_NEO_PIXEL 16  // The ESP32 pin GPIO16 connected to NeoPixel
-#define NUM_PIXELS 60     // Number of LEDs on the strip
+#define NUM_PIXELS 58     // Number of LEDs on the strip
 #define WAVE_LENGTH 30     // Number of LEDs in the wave
 #define DELAY_TIME 10     // Delay between steps
 

@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "streambuf": "cpp"
+        "streambuf": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp",
+        "typeinfo": "cpp"
     }
 }

@@ -2,7 +2,7 @@
 
 // Constructor implementation, using initializer list to setup the NeoPixel object and ledValues vector
 LightStrip::LightStrip(int numPixels, int pin)
-    : strip(numPixels, pin, NEO_GRB + NEO_KHZ800), ledValues(numPixels, 0)
+    : strip(numPixels, pin, NEO_GRB + NEO_KHZ400), ledValues(numPixels, 0)
 {
 }
 
@@ -66,18 +66,21 @@ void LightStrip::setAllFromAnalog(int analogPin) {
     setAll(static_cast<uint8_t>(brightness));
 }
 void LightStrip::fadeTo(uint8_t targetBrightness, int stepDelay) {
+    Serial.println("Fading to brightness: " + String(targetBrightness));
     // assume all leds have the same value as ledValues[0]
     uint8_t current = ledValues.empty() ? 0 : ledValues[0];
 
     if (current < targetBrightness) {
         // fade up
-        for (uint8_t b = current; b <= targetBrightness; ++b) {
+        for (uint8_t b = current; b < targetBrightness; ++b) {
             setAll(b);
+            Serial.println("Brightness: " + String(b));
             delay(stepDelay);
         }
     } else if (current > targetBrightness) {
         // fade down
         for (int b = current; b >= targetBrightness; --b) {
+            Serial.println("Brightness: " + String(b));
             setAll((uint8_t)b);
             delay(stepDelay);
         }

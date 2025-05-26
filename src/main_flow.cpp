@@ -47,7 +47,7 @@ void MainFlow::sendWave() {
     lightStrip.direction_wave(dir, segs_per_sensor * static_cast<int>(current_values.size()), 50);
 }
 
-static constexpr int FADE_STEP_DELAY = 10;  // ms per brightness step
+static constexpr int FADE_STEP_DELAY = 25;  // ms per brightness step
 
 void MainFlow::run() {
     measure();
@@ -67,8 +67,8 @@ void MainFlow::run() {
     if (motion && dark) {
         // --- 1) Read & map analog pot on pin 25 ---
         int raw = analogRead(25);                             // 0–4095 on ESP32
-        int mapped = map(raw, 0, 4095, 0, 255);              
-        uint8_t target = constrain(mapped, 0, 255);           // clamp just in case
+        int mapped = map(raw, 0, 4095, 0, 128);              
+        uint8_t target = constrain(mapped, 0, 128);           // clamp just in case
 
         // --- 2) Fade up to that brightness ---
         lightStrip.fadeTo(target, FADE_STEP_DELAY);

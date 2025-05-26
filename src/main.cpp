@@ -35,5 +35,5 @@ void loop() {
   if (millis() - lastTriggeredTime > resetInterval) {
     flow.last_values.clear();  // Vergessen des vorherigen Zustands
   }
-  delay(100);  // 1 Sekunde Pause vor nächstem Lauf
+  delay(1000);  // 1 Sekunde Pause vor nächstem Lauf
 }
