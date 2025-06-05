@@ -41,7 +41,13 @@ void AttinyCommunication::pollAllMovements() {
     measurements.clear();
     measurements.reserve(addresses.size());
     for (auto addr : addresses) {
-        measurements.push_back(getMovement(addr));
+        //Serial print the address we are getting data from
+        bool movement = getMovement(addr);
+        Serial.print("Addr:");
+        Serial.print(addr, HEX);
+        Serial.print(" : ");
+        Serial.println(movement);
+        measurements.push_back(movement);
     }
 }
 

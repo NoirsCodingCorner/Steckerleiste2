@@ -1,52 +1,66 @@
 #include "LightStrip.h"
 
-// Constructor implementation, using initializer list to setup the NeoPixel object and ledValues vector
+//
+// Konstruktor: Initialisiert die beiden Vektoren und NeoPixel‐Instanz
+//
 LightStrip::LightStrip(int numPixels, int pin)
-    : strip(numPixels, pin, NEO_GRB + NEO_KHZ400), ledValues(numPixels, 0)
+    : strip(numPixels, pin, NEO_GRB + NEO_KHZ400),
+      ledValues(numPixels, 0),
+      targetValues(numPixels, 0)
 {
 }
 
-// Initialize the NeoPixel strip
+//
+// Hardware‐Initialisierung (muss in setup() aufgerufen werden)
+//
 void LightStrip::begin() {
     strip.begin();
     strip.clear();
     strip.show();
 }
 
-// Clear all LED values and update the strip to turn off all LEDs
+//
+// Schaltet ALLE LEDs sofort aus (ledValues[] und strip auf 0 setzen)
+//
 void LightStrip::clear() {
-    strip.clear();
-}
-
-// Set the brightness of a specific LED (red channel) and update the strip
-void LightStrip::setLedValue(int index, uint8_t value) {
-    if (index >= 0 && index < ledValues.size()) {
-        ledValues[index] = value;
-        strip.setPixelColor(index, strip.Color((double)(value)*warmth, (double)(value)*(1-warmth), 0));  // Only adjust the red brightness
-        //Serial.println("LED set to " + String(value)+ " at index " + String(index)+ "in rbg: red:" + String((double)(value)*warmth) + " green:" + String((double)(value)*(1-warmth)));
+    for (size_t i = 0; i < ledValues.size(); ++i) {
+        ledValues[i] = 0;
+        strip.setPixelColor(i, strip.Color(0, 0, 0));
+        targetValues[i] = 0;
     }
-    show();
+    strip.show();
 }
 
-// Update the physical LED strip display
+//
+// Setzt eine EINZELNE LED (Index) sofort auf 'value' (0–255), ohne Fading
+//
+void LightStrip::setLedValue(int index, uint8_t value) {
+    if (index < 0 || index >= (int)ledValues.size()) return;
+    ledValues[index]  = value;
+    targetValues[index] = value;  // auch Sollwert direkt anpassen, damit kein Fade passiert
+
+    uint8_t r = (uint8_t)( (double)value * warmth );
+    uint8_t g = (uint8_t)( (double)value * (1.0 - warmth) );
+    strip.setPixelColor(index, strip.Color(r, g, 0));
+}
+
+//
+// Diesen Aufruf machen, um alle aktualisierten ledValues[] ans Strip zu senden
+//
 void LightStrip::show() {
     strip.show();
 }
 
-void LightStrip::setAll(uint8_t brightness) {
-    for (int i = 0; i < strip.numPixels(); ++i) {
-        ledValues[i] = brightness;
-        strip.setPixelColor(i, strip.Color((double)(brightness) * warmth, (double)(brightness) * (1 - warmth), 0));
-    }
-    show();
-}
+//
+// =============================================================
+// Blockierende Methoden (bleiben unverändert, falls Du sie nutzt)
+// =============================================================
 
-// Create a moving wave effect by updating a range of LEDs' brightness
 void LightStrip::updateWave(int waveHeadIndex) {
     clear();
     for (int j = 0; j < WAVE_LENGTH; j++) {
         int pos = waveHeadIndex - j;
-        if (pos >= 0 && pos < ledValues.size()) {
+        if (pos >= 0 && pos < (int)ledValues.size()) {
             int brightness = 255 - (j * (255 / WAVE_LENGTH));
             setLedValue(pos, brightness);
         }
@@ -54,99 +68,122 @@ void LightStrip::updateWave(int waveHeadIndex) {
     show();
 }
 
-void LightStrip::setAllFromAnalog(int analogPin) {
-    int analogValue = analogRead(analogPin);
-    Serial.println("Analog Value: " + String(analogValue));
-
-    // Annahme: ESP32 mit 12-bit ADC → Wertebereich 0–4095 bei 0–3.3V oder 0–4.0V
-    // Wenn du Arduino nutzt, verwende 1023 statt 4095
-    int brightness = map(analogValue, 0, 4095, 0, 255);
-    brightness = constrain(brightness, 0, 255);  // Sicherheitshalber begrenzen
-
-    setAll(static_cast<uint8_t>(brightness));
-}
-void LightStrip::fadeTo(uint8_t targetBrightness, int stepDelay) {
-    Serial.println("Fading to brightness: " + String(targetBrightness));
-    // assume all leds have the same value as ledValues[0]
-    uint8_t current = ledValues.empty() ? 0 : ledValues[0];
-
-    if (current < targetBrightness) {
-        // fade up
-        for (uint8_t b = current; b < targetBrightness; ++b) {
-            setAll(b);
-            Serial.println("Brightness: " + String(b));
-            delay(stepDelay);
-        }
-    } else if (current > targetBrightness) {
-        // fade down
-        for (int b = current; b >= targetBrightness; --b) {
-            Serial.println("Brightness: " + String(b));
-            setAll((uint8_t)b);
-            delay(stepDelay);
-        }
+void LightStrip::setAll(uint8_t brightness) {
+    for (int i = 0; i < strip.numPixels(); ++i) {
+        ledValues[i]   = brightness;
+        targetValues[i] = brightness;
+        uint8_t r = (uint8_t)((double)brightness * warmth);
+        uint8_t g = (uint8_t)((double)brightness * (1.0 - warmth));
+        strip.setPixelColor(i, strip.Color(r, g, 0));
     }
-    // if equal, do nothing
+    show();
 }
 
-// Fade out to zero brightness
-void LightStrip::fadeOut(int stepDelay) {
-    fadeTo(0, stepDelay);
-}
-
-// In LightStrip.cpp:
-
-void LightStrip::direction_wave(int wavedirection, double birghtness=0, int delaytime=100) {
+void LightStrip::direction_wave(int wavedirection, double brightness, int delaytime) {
     size_t n = ledValues.size();
-
     if (wavedirection > 0) {
-        // forward: single LED moves from 0 to n-1
         for (size_t i = 0; i < n; ++i) {
-            clear();                    // turn off all LEDs
-            setLedValue(i, birghtness);        // turn on just this one
-            delay(delaytime);                // hold for 1 second
+            clear();
+            setLedValue(i, (uint8_t)brightness);
+            show();
+            delay(delaytime);
         }
     }
     else if (wavedirection < 0) {
-        // backward: single LED moves from n-1 down to 0
         for (int i = int(n) - 1; i >= 0; --i) {
             clear();
-            setLedValue(i, birghtness);
+            setLedValue(i, (uint8_t)brightness);
+            show();
             delay(delaytime);
         }
     }
     else {
-        // no movement: just clear
         clear();
         show();
     }
 }
 
-/*
-void setup() {
-    Serial.begin(115200);
-    lightStrip.begin();
+void LightStrip::setAllFromAnalog(int analogPin) {
+    int analogValue = analogRead(analogPin);
+    Serial.println("Analog Value: " + String(analogValue));
+    int brightness = map(analogValue, 0, 4095, 0, 255);
+    brightness = constrain(brightness, 0, 255);
+    setAll((uint8_t)brightness);
 }
 
-void loop() {
- for (int j = 0; j < 57; j++)
- {
-    lightStrip.clear();
-    for (int i = 0; i < 100; i++)
-    {
-        lightStrip.warmth=i/100.0;
-        lightStrip.setLedValue(j,255/4);
-        lightStrip.setLedValue(j+1,255/2);
-        lightStrip.setLedValue(j+2,255/4);
-        delay(DELAY_TIME);
+void LightStrip::fadeTo(uint8_t targetBrightness, int stepDelay) {
+    uint8_t current = ledValues.empty() ? 0 : ledValues[0];
+    if (current < targetBrightness) {
+        for (uint8_t b = current; b < targetBrightness; ++b) {
+            setAll(b);
+            show();
+            delay(stepDelay);
+        }
     }
-    for (int i = 100; i >= 0; i--)
-    {
-        lightStrip.warmth=i/100.0;
-        lightStrip.setLedValue(j,255/4);
-        lightStrip.setLedValue(j+1,255/2);
-        lightStrip.setLedValue(j+2,255/4);
-        delay(DELAY_TIME);
+    else if (current > targetBrightness) {
+        for (int b = current; b >= targetBrightness; --b) {
+            setAll((uint8_t)b);
+            show();
+            delay(stepDelay);
+        }
     }
- } 
 }
-*/
+
+void LightStrip::fadeOut(int stepDelay) {
+    fadeTo(0, stepDelay);
+}
+
+//
+// =============================================================
+// NEU: Nicht-blockierendes Segment-Fading (vereinfachte Variante)
+// =============================================================
+
+//
+// 1) setSegmentTarget: Setzt für alle LEDs im Bereich [startIndex..endIndex]
+//    denselben Sollwert (0..255). Im nächsten updateFades-Laudaufruf faden sie dorthin.
+//
+void LightStrip::setSegmentTarget(int startIndex, int endIndex, uint8_t targetBrightness) {
+    // Grenzen prüfen und anpassen
+    if (startIndex < 0)              startIndex = 0;
+    if (endIndex >= (int)targetValues.size()) endIndex = (int)targetValues.size() - 1;
+    if (startIndex > endIndex)       return;
+
+    for (int i = startIndex; i <= endIndex; ++i) {
+        targetValues[i] = targetBrightness;
+    }
+}
+
+//
+// 2) updateFades: Muss in loop() regelmäßig aufgerufen werden. 
+//    Hier wird jede LED einzeln um ±1 an den in targetValues[…] definierten Sollwert herangeführt.
+//    Wenn sich irgendetwas ändert, wird strip.show() aufgerufen.
+//
+//    ACHTUNG: Kein delay() hier! Diese Methode soll so schnell wie möglich in jedem loop-Durchlauf laufen.
+//
+void LightStrip::updateFades() {
+    bool anyChange = false;
+
+    for (size_t i = 0; i < ledValues.size(); ++i) {
+        uint8_t curr   = ledValues[i];
+        uint8_t target = targetValues[i];
+        if (curr < target) {
+            curr++;
+            anyChange = true;
+        }
+        else if (curr > target) {
+            curr--;
+            anyChange = true;
+        }
+
+        if (anyChange) {
+            ledValues[i] = curr;
+            uint8_t r = (uint8_t)((double)curr * warmth);
+            uint8_t g = (uint8_t)((double)curr * (1.0 - warmth));
+            strip.setPixelColor(i, strip.Color(r, g, 0));
+        }
+    }
+
+    if (anyChange) {
+        strip.show();
+    }
+}

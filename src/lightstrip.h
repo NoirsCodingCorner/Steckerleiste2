@@ -5,54 +5,70 @@
 #include <vector>
 #include <Arduino.h>
 
-// Macro definitions
-#define PIN_NEO_PIXEL 16  // The ESP32 pin GPIO16 connected to NeoPixel
-#define NUM_PIXELS 58     // Number of LEDs on the strip
+// Standard‐Definitionen für Pin und Anzahl Pixel
+#define PIN_NEO_PIXEL 16
+#define NUM_PIXELS    58
 #define WAVE_LENGTH 30     // Number of LEDs in the wave
 #define DELAY_TIME 10     // Delay between steps
 
 class LightStrip {
 public:
-    double warmth=0.5;
-    // Constructor
-    LightStrip(int numPixels, int pin);
+    double warmth = 0.5;  // 0.0 = nur Grün, 1.0 = nur Rot, dazwischen Mischfarben
 
-    // Initialize the NeoPixel strip
+    // Konstruktor: Anzahl LEDs und Pin (Standard-Werte durch defines)
+    LightStrip(int numPixels = NUM_PIXELS, int pin = PIN_NEO_PIXEL);
+
+    // Muss vor Verwendung im setup() aufgerufen werden
     void begin();
 
-    // Clear the strip (turn off all LEDs)
+    // Schaltet alle LEDs sofort aus
     void clear();
 
-    // Set an individual LED's brightness (red channel)
+    // Setzt eine einzelne LED (Index) sofort auf 'value' (0–255), ohne Fading
     void setLedValue(int index, uint8_t value);
 
-    // Update the physical strip with the current LED values
+    // Sendet alle internen Farbwerte zum physikalischen Strip
     void show();
 
-    // Create a moving wave effect along the strip
+    // ---------------------------------------------
+    // Blockierende Methoden (unverändert behalten)
+    // ---------------------------------------------
+
+    // Einfache Welle, die segmentweise über den Strip wandert (blockierend)
     void updateWave(int waveHeadIndex);
 
-    // Set all LEDs to full brightness
+    // Setzt alle LEDs auf dieselbe Helligkeit (blockierend)
     void setAll(uint8_t brightness);
 
+    // Direktrichtungs‐Welle über Block‐Delay (blockierend)
+    void direction_wave(int waveDirection, double brightness = 0, int delayTime = 100);
 
-    void direction_wave(int wavedirection, double birghtness, int delaytime);
-    
+    // Liest analogPin (0–4095), mapped auf 0–255 und setzt alle LEDs (blockierend)
     void setAllFromAnalog(int analogPin);
 
-    // Slowly fade all LEDs from their current brightness to targetBrightness
+    // Fade aller LEDs auf targetBrightness (blockierend)
     void fadeTo(uint8_t targetBrightness, int stepDelay);
 
-    // Slowly fade all LEDs out to off
+    // Fade out (alias für fadeTo(0,...))
     void fadeOut(int stepDelay);
 
+    // ---------------------------------------------
+    // Neu: Nicht‐blockierende Segment‐Fading‐API
+    // ---------------------------------------------
+
+    // 1) Für jedes Segment willst du speichern, auf welchen Wert es „hinfaden“ soll.
+    //    Das machen wir, indem wir targetValues[...] füllen.
+    //    Dieser Aufruf schreibt für [startIndex..endIndex] denselben Ziel‐Helligkeitswert rein.
+    void setSegmentTarget(int startIndex, int endIndex, uint8_t targetBrightness);
+
+    // 2) In loop() muss dann regelmäßig updateFades() aufgerufen werden.
+    //    Es durchläuft alle LEDs und passt jede um ±1 pro Schleifendurchlauf (kein delay).
+    void updateFades();
 
 private:
     Adafruit_NeoPixel strip;
-    std::vector<uint8_t> ledValues;
+    std::vector<uint8_t> ledValues;    // aktueller Ist‐Helligkeitswert (0–255) pro LED
+    std::vector<uint8_t> targetValues; // Soll‐Helligkeitswert (0–255) pro LED
 };
-
-// Global instance declaration
-extern LightStrip lightStrip;
 
 #endif // LIGHTSTRIP_H

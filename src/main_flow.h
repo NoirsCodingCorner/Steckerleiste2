@@ -8,6 +8,7 @@
 
 class MainFlow {
 public:
+    int brightness=128;
     std::vector<bool> current_values;
     std::vector<bool> last_values;
     int segs_per_sensor = 3;
