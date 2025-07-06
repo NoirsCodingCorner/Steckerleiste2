@@ -1,3 +1,4 @@
+
 #define DEBUG_I2C_TIMING
 
 #include <Arduino.h>
@@ -284,10 +285,11 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   // Sensor-Adressen für MainFlow setzen (0x5C und 0x5D)
-  flow.comm.addAddress(0x5C);
-  flow.comm.addAddress(0x5D);
-  flow.comm.addAddress(0x5E);
-  flow.comm.addAddress(0x5F);
+  flow.comm.addAddress(0x6A);
+  flow.comm.addAddress(0x6B);
+  flow.comm.addAddress(0x6C);
+  flow.comm.addAddress(0x6D);
+  flow.comm.addAddress(0x6E);
 
   flow.init();
   Serial.println("System gestartet.");
@@ -325,5 +327,5 @@ void loop() {
   }
   
 
-  delay(10);  // 1 Sekunde
+  delay(1);  // 1 Sekunde
 }
